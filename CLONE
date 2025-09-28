@@ -1,0 +1,61 @@
+s1 = "COMPATIBILITY CHECK IN pUC19 VECTOR"
+cent = s1.center(95)
+print(cent)
+
+# USER INPUT FOR DNA SEQUENCE
+pUC19 = input("ENTER THE DNA SEQUENCE OF pUC 19 VECTOR ::").upper()
+insert = input("ENTER THE INSERT DNA SEQUENCE ::").upper()
+
+# RESTRICTION ENZYME DICTIONARY
+restriction_sites = {
+    "BamHI": ("GGATCC", "STICKY"),
+    "EcoRI": ("GAATTC", "STICKY"),
+    "HindIII": ("AAGCTT", "STICKY"),
+    "PstI": ("CTGCAG", "STICKY"),
+    "SmaI": ("CCCGGG", "BLUNT")
+}
+
+# FUNCTION FOR OVERHANG AND REVERSE COMPLEMENT
+def get_overhang(sequence, site, enzyme):
+    complement = {"A": "T", "T": "A", "G": "C", "C": "G"}  #complement dictionary
+    f = sequence.find(site)
+    if f != -1:
+        overhang = sequence[f+1:f+len(site)]  # Overhang after the restriction site
+        reverse_complement = "".join([complement[base] for base in overhang[::-1]])  # Reverse complement
+        print(enzyme,"SITE FOUND AT POSITION",f)
+        print("5' OVERHANG(",enzyme,"):", overhang)
+        return overhang, reverse_complement
+    else:
+        print(enzyme,"SITE NOT FOUND IN THE SEQUENCE")
+        return None, None
+
+# INPUT ENZYME CHOICE
+chosen_enzyme = input("ENTER THE ENZYME TO CHECK (eg: BamHI, EcoRI, HindIII, PstI, SmaI): ")
+
+if chosen_enzyme in restriction_sites:
+    site, end_type = restriction_sites[chosen_enzyme]
+    
+    if end_type == "STICKY":
+        # OVERHANGS OF BOTH pUC19 AND INSERT
+        pUC19_overhang, pUC19_reverse_complement = get_overhang(pUC19, site, chosen_enzyme)
+        insert_overhang, insert_reverse_complement = get_overhang(insert, site, chosen_enzyme)
+
+        if pUC19_overhang and insert_overhang:
+            # CHECK FOR COMPATIBILITY
+            if pUC19_reverse_complement == insert_reverse_complement:
+                print("THE OVERHANGS OF pUC19 AND THE INSERT ARE COMPATIBLE FOR",chosen_enzyme,"LIGATION")
+            else:
+                print("THE OVERHANGS OF pUC19 AND THE INSERT ARE NOT COMPATIBLE FOR",chosen_enzyme,"LIGATION")
+    
+    elif end_type == "BLUNT":
+        # CHECK IF BOTH SEQUENCE HAVE BLUNT ENDS
+        pUC19_site = pUC19.find(site)
+        insert_site = insert.find(site)
+        
+        if pUC19_site != -1 and insert_site != -1:
+            print(chosen_enzyme,"IS A BLUNT-END ENZYME AND FOUND IN BOTH pUC19 AND INSERT")
+            print("THE FRAGMENTS CAN BE DIRECTLY LIGATED WITHOUT OVERHANG COMPATIBILITY CHECK")
+        else:
+            print(chosen_enzyme,"SITE NOT FOUND IN BOTH THE SEQUENCES FOR BLUNT-END LIGATION")
+else:
+    print(chosen_enzyme,"IS NOT IN THE RESTRICTION SITE DICTIONARY")
